@@ -1,1 +1,4 @@
-src/data/datadir/Images_128
+src/data/datadir/Images_128/
+*.cpython*
+*.DS_Store*
+
