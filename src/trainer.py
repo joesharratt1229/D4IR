@@ -42,6 +42,8 @@ class TrainingAgent:
         self.critic_exp = critic_exp.to(self.device)
         self.actor_task = actor_task.to(self.device)
         self.critic_task = critic_task.to(self.device)
+        self.critic_target_explore = ResNet_wobn(4, 34, 1)
+        self.critic_task_task = ResNet_wobn(4, 34, 1)
         self.explore_buffer = expl_buffer
         self.exploit_buffer = task_buffer
         self.env = env
@@ -225,7 +227,7 @@ class TrainingAgent:
         """
         
         
-        for _ in self.cfg.episode_train_times:
+        for _ in range(self.cfg.episode_train_times):
             task_experience = self.exploit_buffer.sample(task, self.batch_size)
             obs = self.env.reset(task, task_experience)
             policy_obs, env_obs, traj_ob = obs
@@ -328,9 +330,6 @@ class TrainingAgent:
             
     #TODO -> how to handle batch input during training for explore and exploit      
     def train(self):
-        critic_target_explore = copy.deepcopy(self.critic_exp)
-        critic_task_task = copy.deepcopy(self.actor_exp)
-        
         wandb.login(key='d26ee755e0ba08a9aff87c98d0cedbe8b060484b')
         wandb.init(project='MetaRL for inverse imaging', entity='joesharratt1229')
         wandb.watch(self.actor_exp)
@@ -341,7 +340,7 @@ class TrainingAgent:
         task, task_id = self.env.sample_task()
         # TODO deepcopy of policy and value to create target networks
         
-        for trial in self.cfg.num_trials:
+        for trial in range(self.cfg.num_trials):
             if trial%10 == 0:
                 self.save_to_checkpoint(self.actor_exp, 'policy_exp_model')  
                 self.save_to_checkpoint(self.actor_task, 'policy_task_model')   
@@ -349,8 +348,8 @@ class TrainingAgent:
                 self.save_to_checkpoint(self.critic_task, 'critic_task_model')                   
             
             
-            self._roll_exp_traj(self, task)
-            self._roll_task_traj(self, task, task_id, trial)
+            self._roll_exp_traj(task)
+            self._roll_task_traj(task, task_id, trial)
             
             if trial > self.cfg.warmup:
                 env_task, task_id = self.env.sample_task()

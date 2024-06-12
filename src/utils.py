@@ -42,7 +42,7 @@ class GaussianModelD:  # discrete noise levels
         sigma = sigma / 255.
         y = x + torch.randn(*x.shape) * sigma
               
-        return y, sigma
+        return y
     
 
 def fft(img: torch.Tensor
@@ -69,7 +69,7 @@ def kron(a, b):
     return res.reshape(siz0 + siz1)
 
 def spi_forward(x, K, alpha, q):
-    ones = torch.ones(1, 1, K, K).to(x.device)
+    ones = torch.ones(1, 1, int(K), int(K)).to(x.device)
     theta = alpha * torch.kron(x, ones) / (K**2)
     y = torch.poisson(theta)
     ob = (y >= torch.ones_like(y) * q).float()
@@ -79,9 +79,8 @@ def real2complex(x):
     return x.dtype(torch.complex64)
 
 def cdp_forward(data, mask):
-    sampling_rate = mask.shape[1]
-    x = data.expand(-1, sampling_rate, -1, -1)
-    masked_data = x * mask
+    print(data.shape)
+    masked_data = data * mask
     forward_data = torch.fft.fftn(masked_data, dim = (-2, -1), norm = 'ortho')
     return forward_data
 

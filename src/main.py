@@ -25,9 +25,10 @@ ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torc
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type = device_type, dtype = ptdtype)
 
 
-DATA_DIR = os.path.join(os.getcwd(), 'data/datadir')
+DATA_DIR = os.path.join(os.getcwd(), 'data/datadir/')
 CSMRI_MASK_DIR = os.path.join(DATA_DIR, 'masks/csmri_masks')
 PR_MASK_DIR = os.path.join(DATA_DIR, 'masks/pr_masks')
+TRAINING_DIR = os.path.join(DATA_DIR, 'Images_128/')
 
 
 
@@ -38,7 +39,7 @@ def load_masks(dir):
 
 
 def prepare_dataset(cfg):
-    dataset = TrainingDataset(DATA_DIR)
+    dataset = TrainingDataset(TRAINING_DIR)
     dataloader = DataLoader(dataset, batch_size=cfg.batch_size, pin_memory = True)
     return dataloader
 
@@ -74,7 +75,7 @@ def main():
     task_policy = ResNetActorMeta(num_inputs=4, action_bundle=5, num_actions=3)
     
     explore_critic = ResNet_wobn(4, 34, 1)
-    task_critic = ResNet_wobn(5, 34, 1)
+    task_critic = ResNet_wobn(4, 34, 1)
     
     trainer = TrainingAgent(cfg, stoch_encoder, det_encoder, explore_policy, task_policy, explore_critic, task_critic, data_loader, explore_buffer, exploit_buffer, env)
     trainer.train()
